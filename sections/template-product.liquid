@@ -62,7 +62,7 @@
     </div>
 
     <div class="product--information sticky top-5 p-2">
-      {% form 'product', product %}
+      {% form 'product', product, id: 'product-form', novalidate: 'novalidate' %}
         <input type="hidden" name="id" value="{{ selected_variant }}" />
 
         {% for block in section.blocks %}
@@ -76,11 +76,11 @@
                 <h1 class="text-3xl text-gray-900">{{ product.title }}</h1>
               </div>
             {% when 'price' %}
-              <div class="my-3 product-price">
-                <span class="text-base text-gray-500 line-through">{{ product.selected_variant.compare_at_price | money }}</span>
-                <span class="text-lg text-gray-900">{{ product.selected_variant.price | money }}</span>
+              <div class="my-3" id="price-{{ section.id }}">
+                <span class="text-base text-gray-500 line-through">{{ product.selected_or_first_available_variant.compare_at_price | money }}</span>
+                <span class="text-lg text-gray-900">{{ product.selected_or_first_available_variant.price | money }}</span>
       
-                {% if product.selected_variant.price < product.selected_variant.compare_at_price %}
+                {% if product.selected_or_first_available_variant.price < product.selected_or_first_available_variant.compare_at_price %}
                   <span class="text-sm px-5 py-1 font-bold bg-red-500 rounded-full text-white mx-4 uppercase">Sale</span>
                 {% endif %}
               </div>
@@ -130,11 +130,11 @@
             {% when 'checkout_buttons' %}
                 <div class="my-3">
                   <button type="submit" name="add" class="w-full px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2"
-                    {% if product.selected_variant.available == false %}
+                    {% if product.selected_or_first_available_variant.available == false %}
                       disabled
                     {% endif %}
                   >
-                    {% if product.selected_variant.available == false %}
+                    {% if product.selected_or_first_available_variant.available == false %}
                       Sold out
                     {% else %}
                       Add to cart
@@ -159,6 +159,12 @@
     onVariantChange() {
       this.getSelectedOptions();
       this.getSelectedVariant();
+
+      if(this.currentVariant) {
+        this.updateURL();
+        this.updateFormID();
+        this.updatePrice();
+      }
     }
 
     getSelectedOptions() {
@@ -186,6 +192,30 @@
 
       console.log(this.currentVariant);
     }
+
+    updateURL() {
+      if(!this.currentVariant) return;
+      window.history.replaceState({}, '', `${this.dataset.url}?variant=${this.currentVariant.id}`);
+    }
+
+    updateFormID() {
+      const form_input = document.querySelector("#product-form").querySelector("input[name='id']");
+      form_input.value = this.currentVariant.id;
+    }
+
+    updatePrice() {
+      fetch(`${this.dataset.url}?variant=${this.currentVariant.id}&section_id=${this.dataset.section}`)
+      .then((response) => response.text())
+      .then((responseText) => {
+        const id = `price-${this.dataset.section}`;
+        const html = new DOMParser().parseFromString(responseText, 'text/html');
+
+        const oldPrice = document.getElementById(id);
+        const newPrice = html.getElementById(id);
+
+        if(oldPrice && newPrice) oldPrice.innerHTML = newPrice.innerHTML;
+      });
+    }
   }
 
   customElements.define("variant-selector", VariantSelector)
@@ -193,18 +223,20 @@
 </script>
 
 <script defer>
-  const swiper = new Swiper('.swiper', {
-    direction: 'horizontal',
+  window.onload = function(){
+    const swiper = new Swiper('.swiper', {
+      direction: 'horizontal',
 
-    pagination: {
-      el: '.swiper-pagination'
-    },
+      pagination: {
+        el: '.swiper-pagination'
+      },
 
-    navigation: {
-      prevEl: '.swiper-button-prev',
-      nextEl: '.swiper-button-next'
-    }
-  })
+      navigation: {
+        prevEl: '.swiper-button-prev',
+        nextEl: '.swiper-button-next'
+      }
+    })
+  }
 </script>
 
 {% schema %}
