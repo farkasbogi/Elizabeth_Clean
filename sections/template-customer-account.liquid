@@ -73,15 +73,5 @@
       {{ customer.default_address | format_address }}
       <a href="{{ routes.account_addresses_url }}" class="text-sm text-blue-600 hover:text-blue-900 underline">View addresses</a>
     </div>
-
-    {% paginate customer.orders by 1 %}
-    
-    <div class="max-w-6xl mx-auto">
-      {% render 'pagination', pagination: paginate %}
-    </div>
-
-  {% endpaginate %}
-
-
   </div>
 </div>
