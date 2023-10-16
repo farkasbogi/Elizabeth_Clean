@@ -42,12 +42,12 @@
         {% endfor %}
       </div>
 
-      <div class="md:hidden ">
-        <div class="swiper h-94">
+      <div class="md:hidden">
+        <div class="swiper">
           <div class="swiper-wrapper">
             {% for media in product.media %}
               <div class="swiper-slide">
-                <div class="h-80 overflow-hidden p-2">
+                <div class="h-[100vw] overflow-hidden p-2">
                   {% render 'product-media', media: media %}
                 </div>
               </div>
@@ -89,7 +89,7 @@
                   {% unless product.has_only_default_variant %}
                     <variant-selector data-url="{{ product.url }}" data-section="{{ section.id }}">
                       {% for option in product.options_with_values %}
-                        <label for="Option={{ section.id }}-{{forloop.index0 }}">{{ option.name }}</label>
+                        <label for="Option={{ section.id }}-{{ forloop.index0 }}">{{ option.name }}</label>
         
                         <div class="my-2">
                           <select 
